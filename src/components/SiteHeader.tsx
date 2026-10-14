@@ -36,6 +36,22 @@ export function SiteHeader() {
     }
   }, [menuOpen])
 
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    const onResize = () => {
+      if (window.innerWidth >= 1024) setMenuOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    window.addEventListener('resize', onResize)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [menuOpen])
+
   const handleEnquiry = () => {
     setMenuOpen(false)
     openEnquiry()
