@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="The Last Byte">
+  <rect width="64" height="64" rx="14" fill="#090B0A"/>
+  <g fill="none" stroke="#C6FF5E" stroke-width="3" stroke-linecap="square">
+    <path d="M16 18v28"/>
+    <path d="M16 32h8"/>
+  </g>
+  <rect x="30" y="16" width="7" height="7" fill="#C6FF5E"/>
+  <rect x="39" y="16" width="7" height="7" fill="#F4F5EF" opacity="0.35"/>
+  <rect x="30" y="25" width="7" height="7" fill="#F4F5EF" opacity="0.35"/>
+  <rect x="39" y="25" width="7" height="7" fill="#C6FF5E"/>
+  <rect x="30" y="34" width="16" height="7" fill="#D9FF9B" opacity="0.55"/>
+  <rect x="30" y="43" width="7" height="7" fill="#C6FF5E" opacity="0.7"/>
+</svg>
