@@ -30,6 +30,17 @@ function ServiceNumber({ number, icon: Icon }: { number: string; icon: Service['
   )
 }
 
+function WhoFor({ text }: { text: string }) {
+  return (
+    <p className="mt-4 text-sm" style={{ color: 'var(--c-ink-2)' }}>
+      <span className="mono text-2xs uppercase" style={{ color: 'var(--c-muted)' }}>
+        Who it&apos;s for —{' '}
+      </span>
+      {text}
+    </p>
+  )
+}
+
 function StartLink({ service }: { service: string }) {
   const { openEnquiry } = useEnquiry()
   return (
@@ -107,6 +118,7 @@ function ServiceWide({ service }: { service: Service }) {
           <p className="mt-4 text-sm" style={{ color: 'var(--c-muted)' }}>
             {service.outcome}
           </p>
+          <WhoFor text={service.who} />
           <div className="mt-6">
             <Includes items={service.includes} columns={2} />
           </div>
@@ -153,6 +165,7 @@ function ServiceSplit({ service }: { service: Service }) {
           <p className="mt-4 text-sm" style={{ color: 'var(--c-muted)' }}>
             {service.outcome}
           </p>
+          <WhoFor text={service.who} />
           <div className="mt-6">
             <Includes items={service.includes} columns={2} />
           </div>
@@ -188,6 +201,7 @@ function ServiceStacked({ service }: { service: Service }) {
             <p className="mt-4 text-sm" style={{ color: 'var(--c-muted)' }}>
               {service.outcome}
             </p>
+            <WhoFor text={service.who} />
             <div className="mt-7">
               <StartLink service={service.title} />
             </div>
@@ -233,6 +247,7 @@ function ServiceList({ service }: { service: Service }) {
           <p className="mt-4 max-w-2xl text-sm" style={{ color: 'var(--c-muted)' }}>
             {service.outcome}
           </p>
+          <WhoFor text={service.who} />
           <div className="mt-6 flex flex-wrap gap-2">
             {service.includes.map((item) => (
               <span key={item} className="tag">

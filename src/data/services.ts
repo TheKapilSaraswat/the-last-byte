@@ -14,6 +14,8 @@ export interface Service {
   summary: string
   /** The business result this produces, in plain language. */
   outcome: string
+  /** Who this service is a good fit for. */
+  who: string
   includes: string[]
   icon: LucideIcon
   /** Which of the four varied layouts this entry uses. */
@@ -29,6 +31,7 @@ export const services: Service[] = [
       'Modern, responsive websites and landing pages that make a business look credible and turn visitors into enquiries.',
     outcome:
       'A first impression that earns trust — clear messaging, fast pages, and an obvious next step for every visitor.',
+    who: 'Startups, local businesses and professionals who need a credible presence online.',
     includes: [
       'Marketing sites & landing pages',
       'Responsive design & performance',
@@ -46,6 +49,7 @@ export const services: Service[] = [
       'QR-accessible menus, digital catalogues, service pages, contact experiences, and WhatsApp integration.',
     outcome:
       'Customers reach what they need in seconds — no printing, no friction, and every page pushes toward a conversation.',
+    who: 'Restaurants, cafés, salons and shops whose customers scan a QR code to see a menu or catalogue.',
     includes: [
       'QR menu & catalogue systems',
       'Service & contact pages',
@@ -63,6 +67,7 @@ export const services: Service[] = [
       'Purpose-built applications, admin panels, booking workflows, lead management, reporting, and business dashboards.',
     outcome:
       'The repetitive work your team does by hand becomes a reliable system with visibility into what is actually happening.',
+    who: 'Teams outgrowing spreadsheets — sales, operations or service businesses that need one system.',
     includes: [
       'Admin panels & dashboards',
       'Bookings, leads & CRM flows',
@@ -80,6 +85,7 @@ export const services: Service[] = [
       'Practical workflow automation, integrations, data processing, and AI-assisted features where they genuinely improve the business.',
     outcome:
       'Fewer manual steps between an enquiry and a result — systems that connect tools and quietly do the busywork.',
+    who: 'Businesses losing hours to repetitive tasks or copying data between tools.',
     includes: [
       'Workflow & task automation',
       'Tool-to-tool integrations',

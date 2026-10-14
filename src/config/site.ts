@@ -20,7 +20,7 @@ export const siteConfig = {
   url: 'https://thelastbyte.in/',
 
   tagline:
-    'Websites, digital experiences and smart business tools engineered to help ambitious businesses move forward.',
+    'Website development, QR menus and digital business pages, and custom business software — practical digital tools engineered to help ambitious businesses move forward.',
 
   location: {
     city: 'Mathura',
