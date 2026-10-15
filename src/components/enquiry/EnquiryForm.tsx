@@ -2,10 +2,10 @@ import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { ArrowRight, Check, Copy, Loader2, MessageCircle } from 'lucide-react'
 import { services } from '../../data/services'
 import {
+  enquiriesEndpoint,
   hasEmail,
   hasWhatsApp,
   mailtoLink,
-  siteConfig,
   whatsappLink,
 } from '../../config/site'
 
@@ -78,6 +78,45 @@ function buildMessage(form: FormState): string {
     .join('\n')
 }
 
+/** Fields the backend can return validation messages for. */
+const FORM_FIELD_KEYS = [
+  'name',
+  'business',
+  'contact',
+  'service',
+  'budget',
+  'details',
+] as const
+
+/** Shape of the enquiry API's JSON responses (all documented, safe strings). */
+interface EnquiryApiResponse {
+  ok?: boolean
+  id?: string | null
+  error?: string
+  fields?: Record<string, string>
+}
+
+/**
+ * Human-readable, non-technical message for a failed submission. Prefers the
+ * server's own (public, safe) message when present, otherwise a per-status
+ * default. Never surfaces stack traces or internal details.
+ */
+function submissionErrorText(status: number, serverMessage?: string): string {
+  if (status === 400) return serverMessage ?? 'Please check the highlighted fields.'
+  if (status === 413) {
+    return 'That message is a little too long. Please shorten it and try again.'
+  }
+  if (status === 429) {
+    return (
+      serverMessage ?? 'Too many enquiries from this address. Please try again later.'
+    )
+  }
+  if (status >= 500) {
+    return serverMessage ?? 'Something went wrong on our side. Please try again in a moment.'
+  }
+  return serverMessage ?? 'We could not send that automatically. Please try again.'
+}
+
 export function EnquiryForm({
   compact = false,
   initialService = null,
@@ -92,11 +131,14 @@ export function EnquiryForm({
   })
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [status, setStatus] = useState<Status>('idle')
-  const [notice, setNotice] = useState<{ kind: 'preview' | 'wa' | 'error'; text: string } | null>(
-    null,
-  )
+  const [notice, setNotice] = useState<
+    { kind: 'success' | 'preview' | 'wa' | 'error'; text: string } | null
+  >(null)
   const [copied, setCopied] = useState(false)
+  const [gotcha, setGotcha] = useState('')
   const nameRef = useRef<HTMLInputElement>(null)
+  const startedAt = useRef<number>(Date.now())
+  const submittingRef = useRef<boolean>(false)
 
   const set = (key: keyof FormState) => (value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -107,6 +149,11 @@ export function EnquiryForm({
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
+
+    // Guard against duplicate submissions (e.g. a fast double-click/Enter
+    // before React has re-rendered the disabled button).
+    if (status === 'submitting') return
+
     const nextErrors = validate(form)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
@@ -116,26 +163,102 @@ export function EnquiryForm({
     }
 
     const message = buildMessage(form)
+    const endpoint = enquiriesEndpoint()
 
     // 1) Real backend endpoint configured → POST JSON.
-    if (siteConfig.formEndpoint.trim()) {
+    if (endpoint) {
+      // Synchronous guard so two submits in the same tick cannot both fire
+      // (React state updates are async, so the disabled attribute is not enough).
+      if (submittingRef.current) return
+      submittingRef.current = true
       setStatus('submitting')
       setNotice(null)
       try {
-        const response = await fetch(siteConfig.formEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ ...form, _subject: 'New enquiry — The Last Byte' }),
+        const controller = new AbortController()
+        const timer = window.setTimeout(() => controller.abort(), 15_000)
+        let response: Response
+        try {
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              name: form.name.trim(),
+              business: form.business.trim(),
+              contact: form.contact.trim(),
+              service: form.service,
+              budget: form.budget,
+              details: form.details.trim(),
+              _subject: 'New enquiry — The Last Byte',
+              _gotcha: gotcha,
+              startedAt: startedAt.current,
+            }),
+          })
+        } finally {
+          window.clearTimeout(timer)
+        }
+
+        const data = (await response.json().catch(() => null)) as EnquiryApiResponse | null
+
+        // Validation rejection — surface the backend's field-level messages.
+        if (response.status === 400 && data?.fields) {
+          const mapped: Partial<Record<keyof FormState, string>> = {}
+          for (const key of FORM_FIELD_KEYS) {
+            const fieldMessage = data.fields[key]
+            if (fieldMessage) mapped[key] = fieldMessage
+          }
+          setErrors(mapped)
+          setStatus('error')
+          setNotice({
+            kind: 'error',
+            text: submissionErrorText(response.status, data.error),
+          })
+          return
+        }
+
+        // Any other non-2xx (rate limit, server error, oversized payload…).
+        if (!response.ok) {
+          setStatus('error')
+          setNotice({
+            kind: 'error',
+            text: submissionErrorText(response.status, data?.error),
+          })
+          return
+        }
+
+        // Success requires an explicit stored id. The API returns id: null for
+        // submissions dropped by spam protection, which are NOT stored.
+        if (data?.ok === true && typeof data.id === 'string' && data.id.length > 0) {
+          setStatus('success')
+          setErrors({})
+          setGotcha('')
+          setForm({ ...initialForm, service: initialService ?? '' })
+          setNotice({
+            kind: 'success',
+            // Deliberately does not claim email delivery: the API reports the
+            // enquiry as stored even when the notification email fails.
+            text: 'Thanks — your enquiry has reached us. We will reply to the contact you provided, usually within 1–2 business days.',
+          })
+          return
+        }
+
+        // Reached the server but the enquiry was not stored.
+        setStatus('error')
+        setNotice({
+          kind: 'error',
+          text: 'Your enquiry could not be submitted. Please try again.',
         })
-        if (!response.ok) throw new Error(`Request failed with ${response.status}`)
-        setStatus('success')
-        setForm(initialForm)
       } catch {
         setStatus('error')
         setNotice({
           kind: 'error',
-          text: 'We could not send that automatically. Please use WhatsApp or email below — the details are ready to copy.',
+          text:
+            hasWhatsApp || hasEmail
+              ? 'We could not reach the server. Please try again, or use WhatsApp/email below — your details are kept.'
+              : 'We could not reach the server. Please check your connection and try again — your details are kept.',
         })
+      } finally {
+        submittingRef.current = false
       }
       return
     }
@@ -171,11 +294,35 @@ export function EnquiryForm({
     )
   }
 
-  const endpointConfigured = siteConfig.formEndpoint.trim().length > 0
+  const endpointConfigured = enquiriesEndpoint() !== null
   const emailLink = mailtoLink('New project enquiry — The Last Byte', buildMessage(form))
 
   return (
     <form onSubmit={handleSubmit} noValidate className={compact ? '' : 'w-full'}>
+      {/* Honeypot: hidden from people, commonly filled by bots. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: 'auto',
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+        }}
+      >
+        <label htmlFor={fieldId('gotcha')}>Company website</label>
+        <input
+          id={fieldId('gotcha')}
+          name="_gotcha"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={gotcha}
+          onChange={(e) => setGotcha(e.target.value)}
+        />
+      </div>
+
       <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
         <Field
           id={fieldId('name')}

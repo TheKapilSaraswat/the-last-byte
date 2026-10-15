@@ -19,6 +19,14 @@ export const siteConfig = {
   domain: 'https://thelastbyte.in',
   url: 'https://thelastbyte.in/',
 
+  /**
+   * Base URL of the enquiry API (without a trailing slash), supplied at build
+   * time via VITE_API_BASE_URL, e.g. 'https://api.thelastbyte.in'. Leave empty
+   * until the backend is deployed; the form then falls back to WhatsApp/email
+   * or local preview.
+   */
+  apiBaseUrl: (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, ''),
+
   tagline:
     'Website development, QR menus and digital business pages, and custom business software — practical digital tools engineered to help ambitious businesses move forward.',
 
@@ -83,4 +91,14 @@ export function mailtoLink(subject?: string, body?: string): string | null {
   if (body) params.set('body', body)
   const query = params.toString()
   return `mailto:${siteConfig.email}${query ? `?${query}` : ''}`
+}
+
+/**
+ * Resolve the endpoint the enquiry form posts to, or null when neither a
+ * backend API base URL nor a legacy form endpoint is configured.
+ */
+export function enquiriesEndpoint(): string | null {
+  if (siteConfig.apiBaseUrl) return `${siteConfig.apiBaseUrl}/api/enquiries`
+  const legacy = siteConfig.formEndpoint.trim()
+  return legacy ? legacy : null
 }
