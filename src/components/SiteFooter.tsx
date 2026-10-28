@@ -11,16 +11,16 @@ import { useEnquiry } from './enquiry/EnquiryContext'
 
 const NAV = [
   { label: 'Services', href: '#services' },
-  { label: 'Work', href: '#work' },
-  { label: 'Process', href: '#process' },
-  { label: 'About', href: '#about' },
+  { label: 'Our Work', href: '#work' },
+  { label: 'How it works', href: '#process' },
+  { label: 'Why us', href: '#about' },
 ]
 
 const SERVICES = [
-  { label: 'Websites', href: '#services' },
-  { label: 'Digital menus', href: '#services' },
-  { label: 'Business software', href: '#services' },
-  { label: 'Automation', href: '#services' },
+  { label: 'Business websites', href: '#services' },
+  { label: 'QR menus', href: '#services' },
+  { label: 'Custom business tools', href: '#services' },
+  { label: 'Business automation', href: '#services' },
 ]
 
 export function SiteFooter() {
@@ -38,8 +38,8 @@ export function SiteFooter() {
               <Wordmark size={34} />
             </a>
             <p className="mt-5 max-w-sm text-sm leading-relaxed" style={{ color: 'var(--c-ink-2)' }}>
-              An independent digital solutions studio helping small and medium businesses build a
-              strong online presence and run smoother with websites, software and automation.
+              An independent studio helping small and medium businesses get found online and run
+              smoother — with websites, QR menus, business tools and automation.
             </p>
             <p className="mono mt-6 flex items-center gap-2 text-2xs uppercase" style={{ color: 'var(--c-muted)' }}>
               <span
@@ -70,7 +70,7 @@ export function SiteFooter() {
                   className="link-underline"
                   style={{ color: 'var(--c-ink-2)' }}
                 >
-                  Start a project
+                  Get a free quote
                 </button>
               </li>
             </ul>

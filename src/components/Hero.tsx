@@ -7,11 +7,7 @@ export function Hero() {
   const { openEnquiry } = useEnquiry()
 
   return (
-    <section
-      id="top"
-      className="relative overflow-hidden pt-[68px]"
-      style={{ minHeight: 'min(100svh, 920px)' }}
-    >
+    <section id="top" className="relative overflow-hidden pt-[68px]">
       {/* Backdrop */}
       <div aria-hidden="true" className="absolute inset-0 -z-10">
         <div className="bg-grid absolute inset-0 opacity-[0.5]" />
@@ -24,9 +20,9 @@ export function Hero() {
         />
       </div>
 
-      <div className="shell grid min-h-[calc(min(100svh,920px)-68px)] grid-cols-1 items-center gap-10 py-14 lg:grid-cols-12 lg:gap-6 lg:py-20">
+      <div className="shell grid grid-cols-1 items-center gap-12 py-16 lg:grid-cols-12 lg:gap-8 lg:py-24">
         {/* Copy */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-6">
           <div className="mb-7 flex items-center gap-3">
             <span
               className="inline-block h-1.5 w-1.5 rounded-full"
@@ -34,62 +30,39 @@ export function Hero() {
               aria-hidden="true"
             />
             <p className="eyebrow" style={{ color: 'var(--c-ink-2)' }}>
-              Independent Digital Studio <span style={{ color: 'var(--c-muted)' }}>/</span>{' '}
-              {siteConfig.location.label}
+              Digital services for businesses
             </p>
           </div>
 
-          <h1
-            className="display-tight text-[clamp(2.9rem,8.2vw,6.2rem)] uppercase"
-            style={{ fontWeight: 600 }}
-          >
-            <span className="block overflow-hidden">
-              <span className="block">We build the</span>
-            </span>
-            <span className="block overflow-hidden">
-              <span className="block">
-                digital <span style={{ color: 'var(--c-lime)' }}>edge</span>
-                <span style={{ color: 'var(--c-lime)' }} className="animate-blink">
-                  _
-                </span>
-              </span>
-            </span>
+          <h1 className="display-tight text-[clamp(2.4rem,6.4vw,4.6rem)]" style={{ fontWeight: 600 }}>
+            Make your business{' '}
+            <span style={{ color: 'var(--c-lime)' }}>easy to find</span> online.
           </h1>
 
-          <p
-            className="mt-7 max-w-xl text-base leading-relaxed sm:text-lg"
-            style={{ color: 'var(--c-ink-2)' }}
-          >
-            {siteConfig.tagline}
+          <p className="mt-7 max-w-xl text-base leading-relaxed sm:text-lg" style={{ color: 'var(--c-ink-2)' }}>
+            We build simple, attractive websites and useful digital tools for shops, restaurants,
+            coaching centres and growing businesses.
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <button type="button" onClick={() => openEnquiry()} className="btn btn-primary">
-              Start a Project
-              <ArrowUpRight size={16} aria-hidden="true" />
-            </button>
-            <a href="#services" className="btn btn-outline">
-              Explore What We Build
-              <ArrowDown size={15} aria-hidden="true" />
+            <a href="#services" className="btn btn-primary">
+              Explore Our Services
+              <ArrowDown size={16} aria-hidden="true" />
             </a>
+            <button type="button" onClick={() => openEnquiry()} className="btn btn-outline">
+              Get a Free Quote
+              <ArrowUpRight size={15} aria-hidden="true" />
+            </button>
           </div>
 
-          <dl className="mt-10 flex flex-wrap gap-x-8 gap-y-3">
-            {['Websites', 'Business systems', 'Automation'].map((item) => (
-              <div key={item} className="flex items-center gap-2">
-                <span className="mono text-2xs" style={{ color: 'var(--c-lime)' }}>
-                  ▚
-                </span>
-                <dt className="mono text-2xs uppercase" style={{ color: 'var(--c-muted)' }}>
-                  {item}
-                </dt>
-              </div>
-            ))}
-          </dl>
+          <p className="mt-8 text-sm" style={{ color: 'var(--c-muted)' }}>
+            Clear starting prices. A written quote before we begin. Based in{' '}
+            {siteConfig.location.city}, working with businesses across India.
+          </p>
         </div>
 
-        {/* Signature visual */}
-        <div className="relative lg:col-span-5">
+        {/* Quick overview */}
+        <div className="relative lg:col-span-6">
           <HeroVisual />
         </div>
       </div>

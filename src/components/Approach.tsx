@@ -13,33 +13,32 @@ export function Approach() {
                 04
               </span>
               <span className="mono text-2xs uppercase" style={{ color: 'var(--c-muted)' }}>
-                Why The Last Byte
+                About us
               </span>
             </div>
             <h2 className="text-[clamp(1.9rem,4.4vw,3.2rem)] leading-[1.02]">
-              A studio that thinks in systems.
+              Who you&apos;ll be working with.
             </h2>
             <p className="mt-5 max-w-md" style={{ color: 'var(--c-ink-2)' }}>
-              We are an independent studio, which means you talk to the people doing the work. No
-              account managers, no hand-offs — just careful, hands-on building.
+              We are a small independent studio. You talk directly to the people doing the work — no
+              account managers, no hand-offs, just careful, hands-on building.
             </p>
             <div
               className="mt-8 border p-4"
               style={{ borderColor: 'var(--c-line)', background: 'var(--c-obsidian)' }}
             >
               <p className="mono text-2xs uppercase" style={{ color: 'var(--c-muted)' }}>
-                Specification
+                At a glance
               </p>
               <dl className="mt-4 space-y-3">
                 {[
-                  ['Mode', 'Independent studio'],
-                  ['Focus', 'SMB digital systems'],
-                  ['Base', 'Mathura, India · Remote'],
-                  ['Scope', 'Web · Software · Automation'],
+                  ['Based in', 'Mathura, India'],
+                  ['Works with', 'Shops, restaurants, coaching centres, salons'],
+                  ['How we work', 'Directly with you'],
                 ].map(([k, v]) => (
                   <div key={k} className="flex items-baseline justify-between gap-4 text-sm">
                     <dt style={{ color: 'var(--c-muted)' }}>{k}</dt>
-                    <dd className="mono text-right text-2xs" style={{ color: 'var(--c-ink)' }}>
+                    <dd className="text-right" style={{ color: 'var(--c-ink)' }}>
                       {v}
                     </dd>
                   </div>
@@ -65,18 +64,13 @@ export function Approach() {
                     {principle.number}
                   </span>
                 </div>
-                <div className="col-span-10 sm:col-span-7">
+                <div className="col-span-10 sm:col-span-11">
                   <h3 className="text-xl transition-colors duration-300 group-hover:text-lime sm:text-2xl">
                     {principle.title}
                   </h3>
                   <p className="mt-2 text-sm sm:text-base" style={{ color: 'var(--c-ink-2)' }}>
                     {principle.body}
                   </p>
-                </div>
-                <div className="col-span-12 sm:col-span-4 sm:text-right">
-                  <span className="mono text-2xs uppercase" style={{ color: 'var(--c-muted)' }}>
-                    {principle.spec}
-                  </span>
                 </div>
               </div>
             </Reveal>

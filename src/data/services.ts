@@ -6,93 +6,152 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
+export interface ServicePlan {
+  /**
+   * Stable plan key, shared with the backend pricing catalogue so a live
+   * discount from the dashboard can be matched to the right package here.
+   */
+  planKey: string
+  /** Optional plan name, e.g. "Starter Website". Omitted for single-option services. */
+  name?: string
+  /** Headline price, e.g. "₹4,999" or "Custom quote". */
+  price: string
+  /** Prefix shown before the price, e.g. "Starting at" or "From". */
+  pricePrefix?: string
+  /** Label for the feature list, e.g. "What's included" or "Typical examples". */
+  listLabel: string
+  features: string[]
+}
+
 export interface Service {
   id: string
   number: string
   title: string
-  /** One-line outcome-focused summary. */
+  /** Plain-English description of what this service is. */
   summary: string
-  /** The business result this produces, in plain language. */
-  outcome: string
-  /** Who this service is a good fit for. */
-  who: string
-  includes: string[]
+  /** Compact headline price for dense spots (e.g. the hero snapshot). */
+  price: string
   icon: LucideIcon
-  /** Which of the four varied layouts this entry uses. */
-  layout: 'wide' | 'split' | 'stacked' | 'list'
+  /** One or more pricing options. Websites have two; the others have one. */
+  plans: ServicePlan[]
+  /** What is not included, or depends on the agreed package. */
+  excludes: string
 }
 
 export const services: Service[] = [
   {
     id: 'websites',
     number: '01',
-    title: 'Websites & Digital Experiences',
+    title: 'Business Websites',
     summary:
-      'Modern, responsive websites and landing pages that make a business look credible and turn visitors into enquiries.',
-    outcome:
-      'A first impression that earns trust — clear messaging, fast pages, and an obvious next step for every visitor.',
-    who: 'Startups, local businesses and professionals who need a credible presence online.',
-    includes: [
-      'Marketing sites & landing pages',
-      'Responsive design & performance',
-      'Content structure & copy support',
-      'SEO-ready foundations',
-    ],
+      'A professional online presence so customers can find you, trust you and get in touch. Choose the option that fits your business.',
+    price: 'Starting at ₹4,999',
     icon: LayoutTemplate,
-    layout: 'wide',
+    plans: [
+      {
+        planKey: 'starter',
+        name: 'Starter Website',
+        price: '₹4,999',
+        pricePrefix: 'Starting at',
+        listLabel: "What's included",
+        features: [
+          'Up to 4 standard pages (Home, About, Services, Contact)',
+          'Mobile-friendly layout',
+          'Contact form or enquiry link',
+          'Relevant map and WhatsApp links',
+          'Basic on-page SEO',
+          'Two rounds of reasonable revisions',
+        ],
+      },
+      {
+        planKey: 'business',
+        name: 'Business Website',
+        price: '₹8,999',
+        pricePrefix: 'Starting at',
+        listLabel: "What's included",
+        features: [
+          'Up to 6 standard pages',
+          'More tailored branding and layout',
+          'Enquiry form and contact links',
+          'Basic on-page SEO',
+          'Two rounds of revisions',
+        ],
+      },
+    ],
+    excludes:
+      'Domain, hosting, paid tools, professional copywriting and complex features are not included unless expressly included in the written quotation. Booking systems, payment integration, e-commerce and dashboards require a separate quotation.',
   },
   {
     id: 'menus',
     number: '02',
-    title: 'Digital Menus & Business Pages',
+    title: 'QR Menus & Digital Pages',
     summary:
-      'QR-accessible menus, digital catalogues, service pages, contact experiences, and WhatsApp integration.',
-    outcome:
-      'Customers reach what they need in seconds — no printing, no friction, and every page pushes toward a conversation.',
-    who: 'Restaurants, cafés, salons and shops whose customers scan a QR code to see a menu or catalogue.',
-    includes: [
-      'QR menu & catalogue systems',
-      'Service & contact pages',
-      'WhatsApp order/enquiry hand-off',
-      'Easy in-house content updates',
-    ],
+      'Give customers one simple link to view your menu or business details. They just scan a QR code — no app to install.',
+    price: 'Starting at ₹999',
     icon: QrCode,
-    layout: 'split',
+    plans: [
+      {
+        planKey: 'single',
+        price: '₹999',
+        pricePrefix: 'Starting at',
+        listLabel: "What's included",
+        features: [
+          'One simple mobile-friendly page',
+          'Business details, menu or services',
+          'Relevant contact and location links',
+          'QR code',
+          'One round of corrections',
+        ],
+      },
+    ],
+    excludes:
+      'Hosting duration, renewals and advanced editing features depend on the agreed package. We do not promise permanent hosting or unlimited updates.',
   },
   {
     id: 'software',
     number: '03',
-    title: 'Custom Software & Business Tools',
+    title: 'Custom Business Tools',
     summary:
-      'Purpose-built applications, admin panels, booking workflows, lead management, reporting, and business dashboards.',
-    outcome:
-      'The repetitive work your team does by hand becomes a reliable system with visibility into what is actually happening.',
-    who: 'Teams outgrowing spreadsheets — sales, operations or service businesses that need one system.',
-    includes: [
-      'Admin panels & dashboards',
-      'Bookings, leads & CRM flows',
-      'Reporting & data views',
-      'Role-based access where needed',
-    ],
+      'Make everyday work easier with a simple tool built around the way your business already runs.',
+    price: 'From ₹5,999',
     icon: Boxes,
-    layout: 'stacked',
+    plans: [
+      {
+        planKey: 'single',
+        price: '₹5,999',
+        pricePrefix: 'From',
+        listLabel: 'Typical examples',
+        features: [
+          'Enquiry tracking',
+          'Simple record management',
+          'Basic reports and dashboards',
+        ],
+      },
+    ],
+    excludes:
+      'Final price depends on your requirements, authentication, integrations, data handling and testing.',
   },
   {
     id: 'automation',
     number: '04',
-    title: 'Automation & Intelligent Systems',
+    title: 'Business Automation',
     summary:
-      'Practical workflow automation, integrations, data processing, and AI-assisted features where they genuinely improve the business.',
-    outcome:
-      'Fewer manual steps between an enquiry and a result — systems that connect tools and quietly do the busywork.',
-    who: 'Businesses losing hours to repetitive tasks or copying data between tools.',
-    includes: [
-      'Workflow & task automation',
-      'Tool-to-tool integrations',
-      'Data cleanup & processing',
-      'AI where it adds real value',
-    ],
+      'Cut out repetitive manual work — like sending updates or moving data between tools — so your team saves time.',
+    price: 'Custom quote',
     icon: Workflow,
-    layout: 'list',
+    plans: [
+      {
+        planKey: 'single',
+        price: 'Custom quote',
+        listLabel: 'Typical examples',
+        features: [
+          'Enquiry notifications',
+          'Routine data processing',
+          'Repetitive workflow automation',
+        ],
+      },
+    ],
+    excludes:
+      'Price depends on the specific workflow and any third-party services or recurring costs.',
   },
 ]

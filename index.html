@@ -6,10 +6,23 @@
     <meta name="theme-color" content="#090B0A" />
     <meta name="color-scheme" content="dark" />
 
-    <title>The Last Byte — Digital Studio for Websites, Software & Automation</title>
+    <script>
+      // Normalise "/admin/" to "/admin" so relative asset URLs still resolve
+      // correctly when GitHub Pages serves the 404 fallback for the deep link.
+      (function () {
+        var path = window.location.pathname;
+        if (/\/admin\/+$/.test(path)) {
+          window.location.replace(
+            path.replace(/\/+$/, '') + window.location.search + window.location.hash
+          );
+        }
+      })();
+    </script>
+
+    <title>The Last Byte — Websites, QR Menus &amp; Business Tools for Small Businesses</title>
     <meta
       name="description"
-      content="The Last Byte is an independent digital studio building websites, digital experiences, custom business software and automation for small and medium businesses."
+      content="The Last Byte builds simple, attractive websites, QR menus and useful digital tools for shops, restaurants, coaching centres and growing businesses in India — with clear pricing and friendly service."
     />
     <link rel="canonical" href="https://thelastbyte.in/" />
 
@@ -19,10 +32,10 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="The Last Byte" />
-    <meta property="og:title" content="The Last Byte — Digital Studio for Websites, Software & Automation" />
+    <meta property="og:title" content="The Last Byte — Websites, QR Menus &amp; Business Tools" />
     <meta
       property="og:description"
-      content="Websites, digital experiences and smart business tools engineered to help ambitious businesses move forward."
+      content="Simple, attractive websites, QR menus and useful digital tools for shops, restaurants, coaching centres and growing businesses. Clear pricing, friendly service."
     />
     <meta property="og:url" content="https://thelastbyte.in/" />
     <meta property="og:locale" content="en_IN" />
@@ -32,20 +45,20 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="The Last Byte — independent digital studio for websites, digital menus, custom software and automation"
+      content="The Last Byte — websites, QR menus, business tools and automation for small businesses"
     />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="The Last Byte — Digital Studio" />
+    <meta name="twitter:title" content="The Last Byte — Websites, QR Menus &amp; Business Tools" />
     <meta
       name="twitter:description"
-      content="Websites, digital experiences and smart business tools engineered to help ambitious businesses move forward."
+      content="Simple, attractive websites, QR menus and useful digital tools for small and growing businesses. Clear pricing, friendly service."
     />
     <meta name="twitter:image" content="https://thelastbyte.in/og-image.png" />
     <meta
       name="twitter:image:alt"
-      content="The Last Byte — independent digital studio for websites, digital menus, custom software and automation"
+      content="The Last Byte — websites, QR menus, business tools and automation for small businesses"
     />
 
     <!-- Fonts: display / body / mono -->
@@ -61,13 +74,14 @@
         "@context": "https://schema.org",
         "@type": "ProfessionalService",
         "name": "The Last Byte",
-        "description": "Independent digital studio building websites, digital experiences, custom business software and automation.",
+        "description": "Websites, QR menus, custom business tools and automation for small and medium businesses.",
         "url": "https://thelastbyte.in/",
         "areaServed": "IN",
         "knowsAbout": [
-          "Web Design",
-          "Web Development",
-          "Custom Software",
+          "Website Design",
+          "QR Menus",
+          "Digital Business Pages",
+          "Custom Business Tools",
           "Business Automation"
         ]
       }

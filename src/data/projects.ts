@@ -27,7 +27,7 @@ export const projects: Project[] = [
       'An elegant booking-first website for a boutique hotel or guesthouse.',
     description:
       'A calm, editorial hospitality site designed around one job: getting a visitor from “just looking” to a room enquiry. Strong imagery zones, transparent room information and a persistent enquiry path.',
-    tags: ['Next.js-ready', 'Responsive', 'Enquiry flow'],
+    tags: ['Fast & modern', 'Responsive', 'Enquiry flow'],
     preview: 'hospitality',
     focus: [
       'Room & amenity storytelling',

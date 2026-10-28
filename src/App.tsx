@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { SiteHeader } from './components/SiteHeader'
 import { Hero } from './components/Hero'
 import { Marquee } from './components/Marquee'
@@ -10,22 +11,25 @@ import { ConversionCTA } from './components/ConversionCTA'
 import { SiteFooter } from './components/SiteFooter'
 import { EnquiryProvider } from './components/enquiry/EnquiryContext'
 import { EnquiryDialog } from './components/enquiry/EnquiryDialog'
+import { analytics } from './analytics/analytics'
 
 const CAPABILITIES = [
-  'Websites',
-  'Landing pages',
-  'Digital menus',
-  'Business pages',
-  'Custom software',
-  'Admin panels',
-  'Lead systems',
-  'Reporting',
-  'Automation',
-  'Integrations',
-  'AI where useful',
+  'Business websites',
+  'QR menus',
+  'Digital business pages',
+  'Custom business tools',
+  'Enquiry tracking',
+  'Simple reports',
+  'Business automation',
+  'Built for mobile',
+  'Clear pricing',
 ]
 
 export default function App() {
+  useEffect(() => {
+    analytics().trackPageView()
+  }, [])
+
   return (
     <EnquiryProvider>
       <a

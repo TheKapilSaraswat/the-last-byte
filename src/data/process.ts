@@ -2,36 +2,31 @@ export interface ProcessStep {
   number: string
   title: string
   description: string
-  detail: string
 }
 
 export const processSteps: ProcessStep[] = [
   {
     number: '01',
-    title: 'Discover',
+    title: 'Tell us about your business',
     description:
-      'Understand the business, its customers, goals and requirements before anything is designed.',
-    detail: 'A short working session, a clear brief, and an honest scope.',
+      'Share a few details about what you do and what you need. It only takes a minute.',
   },
   {
     number: '02',
-    title: 'Design',
+    title: 'Discuss your requirements and price',
     description:
-      'Plan the experience, structure, content and visual direction around real business goals.',
-    detail: 'Wireframes, direction and a structure you can react to early.',
+      'We talk through the options, agree the scope and confirm a clear price.',
   },
   {
     number: '03',
-    title: 'Build',
+    title: 'Approve the plan and let us build it',
     description:
-      'Implement the website or system, then test responsiveness, performance and functionality.',
-    detail: 'Real pages and working software — not static mockups.',
+      'Once you are happy with the plan and the price, we get to work.',
   },
   {
     number: '04',
-    title: 'Launch & Improve',
+    title: 'Review the result before handover',
     description:
-      'Deploy, measure what matters, and make the agreed improvements after go-live.',
-    detail: 'A live product, then refinements based on how it is used.',
+      'You check everything before we hand it over, and we make any agreed changes.',
   },
 ]

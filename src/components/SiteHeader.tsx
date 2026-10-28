@@ -5,12 +5,13 @@ import { Wordmark } from './ui/BrandMark'
 import { useEnquiry } from './enquiry/EnquiryContext'
 import { useScrollSpy } from '../hooks/useScrollSpy'
 import { cn } from '../lib/cn'
+import { track } from '../analytics/analytics'
 
 const NAV_LINKS = [
   { label: 'Services', href: '#services', id: 'services' },
-  { label: 'Work', href: '#work', id: 'work' },
-  { label: 'Process', href: '#process', id: 'process' },
-  { label: 'About', href: '#about', id: 'about' },
+  { label: 'Our Work', href: '#work', id: 'work' },
+  { label: 'How it works', href: '#process', id: 'process' },
+  { label: 'Why us', href: '#about', id: 'about' },
 ]
 
 const SECTION_IDS = ['services', 'work', 'process', 'about']
@@ -54,6 +55,7 @@ export function SiteHeader() {
 
   const handleEnquiry = () => {
     setMenuOpen(false)
+    track('cta_click')
     openEnquiry()
   }
 
@@ -85,6 +87,7 @@ export function SiteHeader() {
               <a
                 key={link.href}
                 href={link.href}
+                onClick={() => track('nav_click')}
                 aria-current={isActive ? 'true' : undefined}
                 className="relative px-3.5 py-2 text-sm transition-colors duration-300"
                 style={{ color: isActive ? 'var(--c-ink)' : 'var(--c-ink-2)' }}
@@ -119,7 +122,7 @@ export function SiteHeader() {
             onClick={handleEnquiry}
             className="btn btn-primary hidden sm:inline-flex"
           >
-            Start a Project
+            Get a Free Quote
             <ArrowUpRight size={15} aria-hidden="true" />
           </button>
 
@@ -153,7 +156,10 @@ export function SiteHeader() {
                   <a
                     key={link.href}
                     href={link.href}
-                    onClick={() => setMenuOpen(false)}
+                    onClick={() => {
+                      track('nav_click')
+                      setMenuOpen(false)
+                    }}
                     className="flex items-baseline justify-between border-b py-5"
                     style={{ borderColor: 'var(--c-line)' }}
                   >
@@ -175,7 +181,7 @@ export function SiteHeader() {
                 onClick={handleEnquiry}
                 className="btn btn-primary mt-8 w-full"
               >
-                Start a Project
+                Get a Free Quote
                 <ArrowUpRight size={16} aria-hidden="true" />
               </button>
 

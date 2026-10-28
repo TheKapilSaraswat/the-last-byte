@@ -8,6 +8,13 @@ import {
   mailtoLink,
   whatsappLink,
 } from '../../config/site'
+import { track } from '../../analytics/analytics'
+
+/** Map a service title (as used by the form) to its stable id for analytics. */
+function serviceIdFromTitle(title: string): string | undefined {
+  if (!title) return undefined
+  return services.find((service) => service.title === title)?.id
+}
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -32,11 +39,13 @@ const initialForm: FormState = {
 const serviceOptions = [...services.map((s) => s.title), 'Not sure yet']
 
 const budgetOptions = [
-  'Not decided yet',
-  'Under ₹25,000',
-  '₹25,000 – ₹75,000',
-  '₹75,000 – ₹2,00,000',
-  '₹2,00,000+',
+  'Under ₹1,000',
+  '₹1,000–₹2,499',
+  '₹2,500–₹4,999',
+  '₹5,000–₹9,999',
+  '₹10,000–₹19,999',
+  '₹20,000+',
+  'Not sure — suggest a budget',
 ]
 
 function validate(form: FormState) {
@@ -139,8 +148,13 @@ export function EnquiryForm({
   const nameRef = useRef<HTMLInputElement>(null)
   const startedAt = useRef<number>(Date.now())
   const submittingRef = useRef<boolean>(false)
+  const startedRef = useRef<boolean>(false)
 
   const set = (key: keyof FormState) => (value: string) => {
+    if (!startedRef.current) {
+      startedRef.current = true
+      track('enquiry_start')
+    }
     setForm((prev) => ({ ...prev, [key]: value }))
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }))
   }
@@ -157,6 +171,7 @@ export function EnquiryForm({
     const nextErrors = validate(form)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
+      track('enquiry_validation_failure')
       setStatus('idle')
       setNotice(null)
       return
@@ -202,6 +217,7 @@ export function EnquiryForm({
 
         // Validation rejection — surface the backend's field-level messages.
         if (response.status === 400 && data?.fields) {
+          track('enquiry_submission_failure')
           const mapped: Partial<Record<keyof FormState, string>> = {}
           for (const key of FORM_FIELD_KEYS) {
             const fieldMessage = data.fields[key]
@@ -218,6 +234,7 @@ export function EnquiryForm({
 
         // Any other non-2xx (rate limit, server error, oversized payload…).
         if (!response.ok) {
+          track('enquiry_submission_failure')
           setStatus('error')
           setNotice({
             kind: 'error',
@@ -229,6 +246,7 @@ export function EnquiryForm({
         // Success requires an explicit stored id. The API returns id: null for
         // submissions dropped by spam protection, which are NOT stored.
         if (data?.ok === true && typeof data.id === 'string' && data.id.length > 0) {
+          track('enquiry_submit', { service: serviceIdFromTitle(form.service) })
           setStatus('success')
           setErrors({})
           setGotcha('')
@@ -243,12 +261,14 @@ export function EnquiryForm({
         }
 
         // Reached the server but the enquiry was not stored.
+        track('enquiry_submission_failure')
         setStatus('error')
         setNotice({
           kind: 'error',
           text: 'Your enquiry could not be submitted. Please try again.',
         })
       } catch {
+        track('enquiry_submission_failure')
         setStatus('error')
         setNotice({
           kind: 'error',
@@ -401,7 +421,11 @@ export function EnquiryForm({
         </Field>
 
         <div className="sm:col-span-2">
-          <Field id={fieldId('budget')} label="Approximate budget (optional)">
+          <Field
+            id={fieldId('budget')}
+            label="Approximate budget (optional)"
+            helper="Not sure how much you need to spend? Tell us what you need, and we'll suggest a suitable option."
+          >
             <select
               id={fieldId('budget')}
               name="budget"

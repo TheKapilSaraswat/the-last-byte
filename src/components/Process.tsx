@@ -12,20 +12,20 @@ export function Process() {
                 05
               </span>
               <span className="mono text-2xs uppercase" style={{ color: 'var(--c-muted)' }}>
-                Process
+                How it works
               </span>
             </div>
           </div>
           <div className="lg:col-span-9">
             <Reveal>
               <h2 className="text-[clamp(1.9rem,4.6vw,3.4rem)] leading-[1.02]">
-                A simple path, start to launch.
+                Four simple steps.
               </h2>
             </Reveal>
             <Reveal delay={0.08}>
               <p className="mt-5 max-w-2xl" style={{ color: 'var(--c-ink-2)' }}>
-                Four clear stages keep projects predictable. Timelines and scope are agreed per
-                project — a single page and a business system are not the same job.
+                Here&apos;s what working with us usually looks like. Every project is scoped and
+                priced with you before we begin.
               </p>
             </Reveal>
           </div>
@@ -54,9 +54,6 @@ export function Process() {
                 <h3 className="mt-3 text-xl sm:text-2xl">{step.title}</h3>
                 <p className="mt-3 text-sm" style={{ color: 'var(--c-ink-2)' }}>
                   {step.description}
-                </p>
-                <p className="mono mt-4 text-2xs uppercase" style={{ color: 'var(--c-muted)' }}>
-                  {step.detail}
                 </p>
               </div>
             </Reveal>

@@ -31,14 +31,14 @@ export function Work() {
           <div className="lg:col-span-9">
             <Reveal>
               <h2 className="text-[clamp(1.9rem,4.6vw,3.4rem)] leading-[1.02]">
-                Built with intention.
+                A look at what we can build.
               </h2>
             </Reveal>
             <Reveal delay={0.08}>
               <p className="mt-5 max-w-2xl" style={{ color: 'var(--c-ink-2)' }}>
-                A look at how we approach different kinds of businesses. These are{' '}
-                <span style={{ color: 'var(--c-ink)' }}>self-initiated concept projects</span> —
-                honest explorations, not client deployments.
+                Some self-initiated concept projects that show how we approach different kinds of
+                businesses. They are{' '}
+                <span style={{ color: 'var(--c-ink)' }}>honest explorations, not client work</span>.
               </p>
             </Reveal>
           </div>

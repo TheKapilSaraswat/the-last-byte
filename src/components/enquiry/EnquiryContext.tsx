@@ -1,9 +1,17 @@
 /* eslint-disable react-refresh/only-export-components -- provider paired with its hook */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { track } from '../../analytics/analytics'
+import { services } from '../../data/services'
 
 interface EnquiryOptions {
   /** Preselect a service in the enquiry form. */
   service?: string
+}
+
+/** Best-effort mapping from a service title to its stable id for analytics. */
+function serviceIdFromTitle(title?: string): string | undefined {
+  if (!title) return undefined
+  return services.find((service) => service.title === title)?.id
 }
 
 interface EnquiryContextValue {
@@ -22,6 +30,7 @@ export function EnquiryProvider({ children }: { children: ReactNode }) {
   const openEnquiry = useCallback((options?: EnquiryOptions) => {
     setPresetService(options?.service ?? null)
     setIsOpen(true)
+    track('enquiry_open', { service: serviceIdFromTitle(options?.service) })
   }, [])
 
   const closeEnquiry = useCallback(() => setIsOpen(false), [])

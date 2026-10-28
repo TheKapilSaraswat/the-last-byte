@@ -28,9 +28,9 @@ export function BrandStatement() {
           <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-12">
             <Reveal delay={0.1} className="md:col-span-7">
               <p className="text-lg leading-relaxed" style={{ color: 'var(--c-ink-2)' }}>
-                Your website is often the first interaction someone has with your business. We
-                design digital experiences that communicate clearly, build trust, and make it
-                easier for customers to take the next step.
+                Your website is often the first impression someone gets of your business. We make
+                that first impression clear, welcoming and easy to act on — so people call, message
+                or walk in.
               </p>
             </Reveal>
 
@@ -40,11 +40,11 @@ export function BrandStatement() {
                 style={{ borderColor: 'var(--c-line)' }}
               >
                 <p className="mono text-2xs uppercase" style={{ color: 'var(--c-muted)' }}>
-                  Operating principle
+                  How we think
                 </p>
                 <p className="mt-3 text-sm leading-relaxed" style={{ color: 'var(--c-ink-2)' }}>
-                  Every decision — layout, copy, speed, or software — is measured against one
-                  question: does this help the business move forward?
+                  Every choice — the words, the layout, the speed — comes back to one question:
+                  does this help your business?
                 </p>
               </div>
             </Reveal>
