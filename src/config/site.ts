@@ -42,13 +42,13 @@ export const siteConfig = {
    * Public email address. Leave empty until a real mailbox is configured,
    * e.g. 'studio@thelastbyte.in'.
    */
-  email: '',
+  email: 'hello@thelastbyte.in',
 
   /**
    * WhatsApp number in full international format WITHOUT '+', spaces or dashes,
    * e.g. '919812345678'. Leave empty until a real business number exists.
    */
-  whatsappNumber: '',
+  whatsappNumber: '919589842158',
 
   /** Social profiles — only rendered in the UI when a real URL is provided. */
   social: {
