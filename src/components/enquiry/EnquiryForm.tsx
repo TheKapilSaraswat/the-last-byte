@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { ArrowRight, Check, Copy, Loader2, MessageCircle } from 'lucide-react'
 import { services } from '../../data/services'
 import {
@@ -97,33 +97,43 @@ const FORM_FIELD_KEYS = [
   'details',
 ] as const
 
-/** Shape of the enquiry API's JSON responses (all documented, safe strings). */
 interface EnquiryApiResponse {
-  ok?: boolean
-  id?: string | null
-  error?: string
-  fields?: Record<string, string>
+  ok?: unknown
+  id?: unknown
 }
 
-/**
- * Human-readable, non-technical message for a failed submission. Prefers the
- * server's own (public, safe) message when present, otherwise a per-status
- * default. Never surfaces stack traces or internal details.
- */
-function submissionErrorText(status: number, serverMessage?: string): string {
-  if (status === 400) return serverMessage ?? 'Please check the highlighted fields.'
+function safeText(value: unknown, maxLength = 160): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const text = Array.from(value)
+    .map((character) => {
+      const code = character.charCodeAt(0)
+      return code < 32 || code === 127 ? ' ' : character
+    })
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return text ? text.slice(0, maxLength) : undefined
+}
+
+function safeFieldErrors(value: unknown): Partial<Record<keyof FormState, string>> {
+  const mapped: Partial<Record<keyof FormState, string>> = {}
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return mapped
+  const source = value as Record<string, unknown>
+  for (const key of FORM_FIELD_KEYS) {
+    const message = safeText(source[key])
+    if (message) mapped[key] = message
+  }
+  return mapped
+}
+
+function submissionErrorText(status: number): string {
+  if (status === 400) return 'Please check the highlighted fields.'
   if (status === 413) {
     return 'That message is a little too long. Please shorten it and try again.'
   }
-  if (status === 429) {
-    return (
-      serverMessage ?? 'Too many enquiries from this address. Please try again later.'
-    )
-  }
-  if (status >= 500) {
-    return serverMessage ?? 'Something went wrong on our side. Please try again in a moment.'
-  }
-  return serverMessage ?? 'We could not send that automatically. Please try again.'
+  if (status === 429) return 'Too many enquiries from this address. Please try again later.'
+  if (status >= 500) return 'Something went wrong on our side. Please try again in a moment.'
+  return 'We could not send that automatically. Please try again.'
 }
 
 export function EnquiryForm({
@@ -145,10 +155,21 @@ export function EnquiryForm({
   >(null)
   const [copied, setCopied] = useState(false)
   const [gotcha, setGotcha] = useState('')
+  const [showErrorSummary, setShowErrorSummary] = useState(false)
+  const [focusTarget, setFocusTarget] = useState<'errors' | 'notice' | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const errorSummaryRef = useRef<HTMLDivElement>(null)
+  const noticeRef = useRef<HTMLDivElement>(null)
   const startedAt = useRef<number>(Date.now())
   const submittingRef = useRef<boolean>(false)
   const startedRef = useRef<boolean>(false)
+
+  useEffect(() => {
+    if (!focusTarget) return
+    if (focusTarget === 'errors') errorSummaryRef.current?.focus()
+    else noticeRef.current?.focus()
+    setFocusTarget(null)
+  }, [focusTarget])
 
   const set = (key: keyof FormState) => (value: string) => {
     if (!startedRef.current) {
@@ -161,12 +182,19 @@ export function EnquiryForm({
 
   const fieldId = (key: string) => `${uid}-${key}`
 
+  const setFeedback = (kind: 'success' | 'preview' | 'wa' | 'error', text: string) => {
+    setNotice({ kind, text })
+    setFocusTarget('notice')
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
 
     // Guard against duplicate submissions (e.g. a fast double-click/Enter
     // before React has re-rendered the disabled button).
     if (status === 'submitting') return
+    setShowErrorSummary(false)
+    setFocusTarget(null)
 
     const nextErrors = validate(form)
     setErrors(nextErrors)
@@ -174,6 +202,8 @@ export function EnquiryForm({
       track('enquiry_validation_failure')
       setStatus('idle')
       setNotice(null)
+      setShowErrorSummary(true)
+      setFocusTarget('errors')
       return
     }
 
@@ -213,22 +243,26 @@ export function EnquiryForm({
           window.clearTimeout(timer)
         }
 
-        const data = (await response.json().catch(() => null)) as EnquiryApiResponse | null
+        const parsed: unknown = await response.json().catch(() => null)
+        const data: EnquiryApiResponse | null =
+          parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+            ? (parsed as EnquiryApiResponse)
+            : null
+        const body = parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+          ? (parsed as Record<string, unknown>)
+          : {}
 
-        // Validation rejection — surface the backend's field-level messages.
-        if (response.status === 400 && data?.fields) {
+        // Validation rejection — surface sanitized field-level messages.
+        if (response.status === 400 && body.fields) {
           track('enquiry_submission_failure')
-          const mapped: Partial<Record<keyof FormState, string>> = {}
-          for (const key of FORM_FIELD_KEYS) {
-            const fieldMessage = data.fields[key]
-            if (fieldMessage) mapped[key] = fieldMessage
-          }
+          const mapped = safeFieldErrors(body.fields)
           setErrors(mapped)
           setStatus('error')
-          setNotice({
-            kind: 'error',
-            text: submissionErrorText(response.status, data.error),
-          })
+          setFeedback('error', submissionErrorText(response.status))
+          if (Object.keys(mapped).length > 0) {
+            setShowErrorSummary(true)
+            setFocusTarget('errors')
+          }
           return
         }
 
@@ -236,10 +270,7 @@ export function EnquiryForm({
         if (!response.ok) {
           track('enquiry_submission_failure')
           setStatus('error')
-          setNotice({
-            kind: 'error',
-            text: submissionErrorText(response.status, data?.error),
-          })
+          setFeedback('error', submissionErrorText(response.status))
           return
         }
 
@@ -251,32 +282,26 @@ export function EnquiryForm({
           setErrors({})
           setGotcha('')
           setForm({ ...initialForm, service: initialService ?? '' })
-          setNotice({
-            kind: 'success',
-            // Deliberately does not claim email delivery: the API reports the
-            // enquiry as stored even when the notification email fails.
-            text: 'Thanks — your enquiry has reached us. We will reply to the contact you provided, usually within 1–2 business days.',
-          })
+          setFeedback(
+            'success',
+            'Thanks — your enquiry has reached us. We will reply to the contact you provided, usually within 1–2 business days.',
+          )
           return
         }
 
         // Reached the server but the enquiry was not stored.
         track('enquiry_submission_failure')
         setStatus('error')
-        setNotice({
-          kind: 'error',
-          text: 'Your enquiry could not be submitted. Please try again.',
-        })
+        setFeedback('error', 'Your enquiry could not be submitted. Please try again.')
       } catch {
         track('enquiry_submission_failure')
         setStatus('error')
-        setNotice({
-          kind: 'error',
-          text:
-            hasWhatsApp || hasEmail
-              ? 'We could not reach the server. Please try again, or use WhatsApp/email below — your details are kept.'
-              : 'We could not reach the server. Please check your connection and try again — your details are kept.',
-        })
+        setFeedback(
+          'error',
+          hasWhatsApp || hasEmail
+            ? 'We could not reach the server. Please try again, or use WhatsApp/email below — your details are kept.'
+            : 'We could not reach the server. Please check your connection and try again — your details are kept.',
+        )
       } finally {
         submittingRef.current = false
       }
@@ -287,20 +312,20 @@ export function EnquiryForm({
     const wa = whatsappLink(message)
     if (wa) {
       setStatus('success')
-      setNotice({
-        kind: 'wa',
-        text: 'Opening WhatsApp with your details pre-filled. Press send in WhatsApp to reach us.',
-      })
+      setFeedback(
+        'wa',
+        'Opening WhatsApp with your details pre-filled. Press send in WhatsApp to reach us.',
+      )
       window.open(wa, '_blank', 'noopener,noreferrer')
       return
     }
 
     // 3) Nothing configured → honest local preview. Never claim it was sent.
     setStatus('success')
-    setNotice({
-      kind: 'preview',
-      text: 'Submission is not connected yet in this build. Your message has been prepared below — copy it and send it through a channel once contact details are configured.',
-    })
+    setFeedback(
+      'preview',
+      'Submission is not connected yet in this build. Your message has been prepared below — copy it and send it through a channel once contact details are configured.',
+    )
   }
 
   function copyMessage() {
@@ -316,6 +341,9 @@ export function EnquiryForm({
 
   const endpointConfigured = enquiriesEndpoint() !== null
   const emailLink = mailtoLink('New project enquiry — The Last Byte', buildMessage(form))
+  const errorEntries = (Object.keys(errors) as (keyof FormState)[])
+    .filter((key) => Boolean(errors[key]))
+    .map((key) => ({ key, message: errors[key] as string }))
 
   return (
     <form onSubmit={handleSubmit} noValidate className={compact ? '' : 'w-full'}>
@@ -343,6 +371,36 @@ export function EnquiryForm({
         />
       </div>
 
+      {showErrorSummary && errorEntries.length > 0 && (
+        <div
+          ref={errorSummaryRef}
+          role="alert"
+          tabIndex={-1}
+          className="mb-6 border p-4 text-sm"
+          style={{
+            borderColor: 'rgba(255,107,107,0.5)',
+            background: 'rgba(255,107,107,0.06)',
+            borderRadius: 'var(--radius)',
+            color: 'var(--c-ink)',
+          }}
+        >
+          <p className="m-0">Please check these fields before sending:</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {errorEntries.map(({ key, message }) => (
+              <li key={key}>
+                <a
+                  href={`#${fieldId(key)}`}
+                  className="link-underline"
+                  style={{ color: '#ff8b8b' }}
+                >
+                  {message}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
         <Field
           id={fieldId('name')}
@@ -355,6 +413,8 @@ export function EnquiryForm({
             id={fieldId('name')}
             name="name"
             className="field-input"
+            required
+            aria-required="true"
             autoComplete="name"
             value={form.name}
             onChange={(e) => set('name')(e.target.value)}
@@ -387,7 +447,9 @@ export function EnquiryForm({
             id={fieldId('contact')}
             name="contact"
             className="field-input"
-            autoComplete="email"
+            required
+            aria-required="true"
+            autoComplete="off"
             value={form.contact}
             onChange={(e) => set('contact')(e.target.value)}
             aria-invalid={Boolean(errors.contact)}
@@ -406,6 +468,8 @@ export function EnquiryForm({
             id={fieldId('service')}
             name="service"
             className="field-input"
+            required
+            aria-required="true"
             value={form.service}
             onChange={(e) => set('service')(e.target.value)}
             aria-invalid={Boolean(errors.service)}
@@ -454,6 +518,8 @@ export function EnquiryForm({
               id={fieldId('details')}
               name="details"
               className="field-input"
+              required
+              aria-required="true"
               rows={compact ? 3 : 4}
               value={form.details}
               onChange={(e) => set('details')(e.target.value)}
@@ -465,10 +531,7 @@ export function EnquiryForm({
         </div>
       </div>
 
-      <div
-        className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center"
-        aria-live="polite"
-      >
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <button
           type="submit"
           className="btn btn-primary"
@@ -503,7 +566,11 @@ export function EnquiryForm({
       {/* Success / fallback feedback */}
       {(status === 'success' || status === 'error') && notice && (
         <div
-          role="status"
+          ref={noticeRef}
+          role={notice.kind === 'error' ? 'alert' : 'status'}
+          aria-live={notice.kind === 'error' ? 'assertive' : 'polite'}
+          aria-atomic="true"
+          tabIndex={-1}
           className="mt-5 border p-4 text-sm"
           style={{
             borderColor:

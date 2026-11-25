@@ -7,11 +7,9 @@
     <meta name="color-scheme" content="dark" />
 
     <script>
-      // Normalise "/admin/" to "/admin" so relative asset URLs still resolve
-      // correctly when GitHub Pages serves the 404 fallback for the deep link.
       (function () {
         var path = window.location.pathname;
-        if (/\/admin\/+$/.test(path)) {
+        if (/^\/(admin|privacy)\/+$/.test(path)) {
           window.location.replace(
             path.replace(/\/+$/, '') + window.location.search + window.location.hash
           );
@@ -78,6 +76,23 @@
         "url": "https://thelastbyte.in/",
         "areaServed": "IN",
         "email": "hello@thelastbyte.in",
+        "telephone": "+919589842158",
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "email": "hello@thelastbyte.in",
+            "telephone": "+919589842158",
+            "areaServed": "IN",
+            "availableLanguage": ["en", "hi"]
+          }
+        ],
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Mathura",
+          "addressRegion": "Uttar Pradesh",
+          "addressCountry": "India"
+        },
         "knowsAbout": [
           "Website Design",
           "QR Menus",

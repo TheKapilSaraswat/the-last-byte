@@ -42,7 +42,7 @@ export default function App() {
 
       <SiteHeader />
 
-      <main id="main">
+      <main id="main" tabIndex={-1}>
         <Hero />
         <Marquee items={CAPABILITIES} />
         <BrandStatement />

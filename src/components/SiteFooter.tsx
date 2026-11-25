@@ -73,6 +73,11 @@ export function SiteFooter() {
                   Get a free quote
                 </button>
               </li>
+              <li>
+                <a href="/privacy" className="link-underline" style={{ color: 'var(--c-ink-2)' }}>
+                  Privacy
+                </a>
+              </li>
             </ul>
           </nav>
 

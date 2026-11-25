@@ -21,19 +21,25 @@ export function EnquiryDialog() {
     if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`
 
     const panel = panelRef.current
-    const focusables = panel?.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    )
-    focusables?.[0]?.focus()
+    const focusableSelector =
+      'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    panel?.querySelectorAll<HTMLElement>(focusableSelector)[0]?.focus()
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         closeEnquiry()
         return
       }
-      if (event.key !== 'Tab' || !focusables || focusables.length === 0) return
+      if (event.key !== 'Tab') return
+      const focusables = panel?.querySelectorAll<HTMLElement>(focusableSelector)
+      if (!focusables || focusables.length === 0) return
       const first = focusables[0]
       const last = focusables[focusables.length - 1]
+      if (!panel?.contains(document.activeElement)) {
+        event.preventDefault()
+        first.focus()
+        return
+      }
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault()
         last.focus()

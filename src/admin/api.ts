@@ -36,8 +36,61 @@ export class ApiError extends Error {
 
 let csrfToken: string | null = null
 
+const LOGIN_ERROR_MESSAGES: Record<number, string> = {
+  401: 'The email or password is incorrect.',
+}
+
+const ERROR_MESSAGES: Record<number, string> = {
+  400: 'Please check the information you entered.',
+  401: 'Your session has expired. Please sign in again.',
+  403: 'You do not have permission to do that.',
+  404: 'That item could not be found.',
+  409: 'That change conflicts with the current record.',
+  413: 'The request is too large.',
+  422: 'Please check the information you entered.',
+  429: 'Too many attempts. Please try again shortly.',
+  500: 'The server could not complete the request.',
+  502: 'The server is temporarily unavailable.',
+  503: 'The server is temporarily unavailable.',
+  504: 'The server took too long to respond.',
+}
+
+function sanitizedFields(value: unknown): Record<string, string> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const result: Record<string, string> = {}
+  for (const [key, entry] of Object.entries(value)) {
+    if (typeof entry !== 'string') continue
+    const message = Array.from(entry)
+      .map((character) => {
+        const code = character.charCodeAt(0)
+        return code < 32 || code === 127 ? ' ' : character
+      })
+      .join('')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .slice(0, 160)
+    if (message) result[key] = message
+  }
+  return Object.keys(result).length ? result : undefined
+}
+
+function safeErrorMessage(
+  status: number,
+  fields?: Record<string, string>,
+  messages: Record<number, string> = ERROR_MESSAGES,
+): string {
+  const base = messages[status] ?? ERROR_MESSAGES[status] ?? 'The request could not be completed.'
+  if (!fields) return base
+  const details = Object.values(fields).slice(0, 3)
+  return details.length ? `${base} ${details.join(' ')}` : base
+}
+
 function setCsrfToken(token: string | null): void {
   csrfToken = token
+}
+
+export function clearAdminCredentials(): void {
+  setCsrfToken(null)
 }
 
 /** True when an API base URL has been configured at build time. */
@@ -50,11 +103,15 @@ interface RequestOptions {
   body?: unknown
   /** Treat these status codes as a null result instead of throwing. */
   allow?: number[]
+  errorMessages?: Record<number, string>
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T | null> {
   const method = options.method ?? 'GET'
-  const headers: Record<string, string> = { Accept: 'application/json' }
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  }
   if (options.body !== undefined) headers['Content-Type'] = 'application/json'
   if (method !== 'GET' && csrfToken) headers['X-CSRF-Token'] = csrfToken
 
@@ -73,12 +130,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   }
 
   if (!response.ok) {
+    if (response.status === 401) setCsrfToken(null)
     if (options.allow?.includes(response.status)) return null
-    const body = data as { error?: string; fields?: Record<string, string> } | null
+    const body = data as { fields?: unknown } | null
+    const fields = sanitizedFields(body?.fields)
     throw new ApiError(
-      body?.error ?? `Request failed (${response.status}).`,
+      safeErrorMessage(response.status, fields, options.errorMessages),
       response.status,
-      body?.fields,
+      fields,
     )
   }
 
@@ -105,7 +164,11 @@ export const adminApi = {
       admin: AdminSession['admin']
       csrfToken: string
       expiresAt: string
-    }>('/api/admin/login', { method: 'POST', body: { email, password } })
+    }>('/api/admin/login', {
+      method: 'POST',
+      body: { email, password },
+      errorMessages: LOGIN_ERROR_MESSAGES,
+    })
     if (!data || !data.ok) throw new ApiError('Sign in did not complete.', 500)
     setCsrfToken(data.csrfToken)
     return { admin: data.admin, csrfToken: data.csrfToken }

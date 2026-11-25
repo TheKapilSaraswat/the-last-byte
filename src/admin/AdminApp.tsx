@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BarChart3, FileText, LayoutDashboard, LogOut, Tags, Users } from 'lucide-react'
-import { adminApi, adminApiConfigured, errorMessage } from './api'
+import { adminApi, adminApiConfigured, clearAdminCredentials, errorMessage, ApiError } from './api'
 import type { AdminUser } from './types'
 import { LoginScreen } from './components/LoginScreen'
 import { ErrorNote, Spinner } from './components/ui'
@@ -50,16 +50,30 @@ export function AdminApp() {
     }
   }, [])
 
+  function clearLocalAdminState() {
+    clearAdminCredentials()
+    setAdmin(null)
+    setTab('overview')
+  }
+
   async function handleLogout() {
     setLoggingOut(true)
+    setError(null)
     try {
       await adminApi.logout()
-    } catch {
-      /* even if the call fails, drop the local view */
+      clearLocalAdminState()
+    } catch (err) {
+      if (
+        !(err instanceof ApiError) ||
+        err.status === 401 ||
+        err.status === 403
+      ) {
+        clearLocalAdminState()
+      } else {
+        setError(errorMessage(err))
+      }
     } finally {
       setLoggingOut(false)
-      setAdmin(null)
-      setTab('overview')
     }
   }
 

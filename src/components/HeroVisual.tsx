@@ -22,7 +22,7 @@ export function HeroVisual() {
           What we can build for you
         </span>
         <span className="mono text-2xs" style={{ color: 'var(--c-lime)' }}>
-          04 services
+          {String(services.length).padStart(2, '0')} services
         </span>
       </div>
 

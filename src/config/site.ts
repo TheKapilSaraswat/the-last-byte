@@ -12,6 +12,28 @@
  * ============================================================================
  */
 
+export function normalizeApiBaseUrl(raw: string): string {
+  const value = raw.trim().replace(/\/+$/, '')
+  if (!value) return ''
+  try {
+    const url = new URL(value)
+    if (
+      url.protocol !== 'https:' ||
+      url.username ||
+      url.password ||
+      url.hash ||
+      url.search ||
+      value.includes('#') ||
+      value.includes('?')
+    ) {
+      return ''
+    }
+    return value
+  } catch {
+    return ''
+  }
+}
+
 export const siteConfig = {
   name: 'The Last Byte',
   shortName: 'TLB',
@@ -25,7 +47,7 @@ export const siteConfig = {
    * until the backend is deployed; the form then falls back to WhatsApp/email
    * or local preview.
    */
-  apiBaseUrl: (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, ''),
+  apiBaseUrl: normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL ?? ''),
 
   tagline:
     'Website development, QR menus and digital business pages, and custom business software — practical digital tools engineered to help ambitious businesses move forward.',
@@ -99,6 +121,6 @@ export function mailtoLink(subject?: string, body?: string): string | null {
  */
 export function enquiriesEndpoint(): string | null {
   if (siteConfig.apiBaseUrl) return `${siteConfig.apiBaseUrl}/api/enquiries`
-  const legacy = siteConfig.formEndpoint.trim()
-  return legacy ? legacy : null
+  const legacy = normalizeApiBaseUrl(siteConfig.formEndpoint)
+  return legacy || null
 }

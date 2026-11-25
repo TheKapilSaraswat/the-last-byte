@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, Menu, X } from 'lucide-react'
 import { Wordmark } from './ui/BrandMark'
@@ -19,6 +19,9 @@ const SECTION_IDS = ['services', 'work', 'process', 'about']
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const menuPanelRef = useRef<HTMLDivElement>(null)
+  const restoreMenuFocusRef = useRef(true)
   const { openEnquiry } = useEnquiry()
   const reduce = useReducedMotion()
   const activeId = useScrollSpy(SECTION_IDS)
@@ -39,21 +42,55 @@ export function SiteHeader() {
 
   useEffect(() => {
     if (!menuOpen) return
+    restoreMenuFocusRef.current = true
+    const panel = menuPanelRef.current
+    const menuButton = menuButtonRef.current
+    const focusableSelector =
+      'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    panel?.querySelectorAll<HTMLElement>(focusableSelector)[0]?.focus()
+
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false)
+      if (event.key === 'Escape') {
+        restoreMenuFocusRef.current = true
+        setMenuOpen(false)
+        return
+      }
+      if (event.key !== 'Tab') return
+      const focusables = panel?.querySelectorAll<HTMLElement>(focusableSelector)
+      if (!focusables || focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (!panel?.contains(document.activeElement)) {
+        event.preventDefault()
+        first.focus()
+        return
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
     const onResize = () => {
-      if (window.innerWidth >= 1024) setMenuOpen(false)
+      if (window.innerWidth >= 1024) {
+        restoreMenuFocusRef.current = false
+        setMenuOpen(false)
+      }
     }
     document.addEventListener('keydown', onKeyDown)
     window.addEventListener('resize', onResize)
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('resize', onResize)
+      const buttonHidden = menuButton ? window.getComputedStyle(menuButton).display === 'none' : true
+      if (restoreMenuFocusRef.current && !buttonHidden && window.innerWidth < 1024) menuButton?.focus()
     }
   }, [menuOpen])
 
   const handleEnquiry = () => {
+    restoreMenuFocusRef.current = false
     setMenuOpen(false)
     track('cta_click')
     openEnquiry()
@@ -75,7 +112,13 @@ export function SiteHeader() {
           href="#top"
           className="shrink-0"
           aria-label="The Last Byte — back to top"
-          onClick={() => setMenuOpen(false)}
+          onClick={() => {
+            restoreMenuFocusRef.current = false
+            setMenuOpen(false)
+            window.setTimeout(() => {
+              document.getElementById('main')?.focus({ preventScroll: true })
+            }, 0)
+          }}
         >
           <Wordmark size={32} />
         </a>
@@ -127,6 +170,7 @@ export function SiteHeader() {
           </button>
 
           <button
+            ref={menuButtonRef}
             type="button"
             className="btn btn-ghost px-2 lg:hidden"
             aria-expanded={menuOpen}
@@ -142,7 +186,11 @@ export function SiteHeader() {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
+            ref={menuPanelRef}
             id="mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site menu"
             className="fixed inset-x-0 top-[68px] bottom-0 lg:hidden"
             style={{ background: 'var(--c-obsidian)' }}
             initial={reduce ? undefined : { opacity: 0, y: -12 }}
@@ -151,14 +199,31 @@ export function SiteHeader() {
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="shell flex h-full flex-col py-8">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    restoreMenuFocusRef.current = true
+                    setMenuOpen(false)
+                  }}
+                  className="btn btn-ghost px-2"
+                  aria-label="Close menu"
+                >
+                  <X size={22} />
+                </button>
+              </div>
               <nav aria-label="Mobile" className="flex flex-col">
                 {NAV_LINKS.map((link, index) => (
                   <a
                     key={link.href}
                     href={link.href}
                     onClick={() => {
+                      restoreMenuFocusRef.current = false
                       track('nav_click')
                       setMenuOpen(false)
+                      window.setTimeout(() => {
+                        document.getElementById('main')?.focus({ preventScroll: true })
+                      }, 0)
                     }}
                     className="flex items-baseline justify-between border-b py-5"
                     style={{ borderColor: 'var(--c-line)' }}
